@@ -1,0 +1,117 @@
+// @ts-ignore
+import type { NextPage } from "next";
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import clsx from 'clsx';
+import Box from '@mui/material/Box';
+import styles from "../../styles/Home.module.css";
+import LaunchIcon from "@mui/icons-material/Launch";
+import IconButton from '@mui/material/IconButton';
+
+import { DataGrid, GridColDef, GridCellParams } from "@mui/x-data-grid";
+
+const TABLE_COLUMNS: GridColDef[] = [
+  { field: "PROP", headerName: "Prop", width: 250 },
+  { field: "PROPTYPE", headerName: "Prop Type", width: 100 },
+  { field: "D", headerName: "Diff", width: 250 },
+  { field: "TEAM", headerName: "Team", width: 75 },
+  { field: "LINE_DK", headerName: "DK", width: 100,
+    renderCell: (params) =>
+    <p>
+        {params.row.LINE_DK} ({params.row.AMERICAN_DK})
+    </p>
+    },
+  { field: "LINE_FD", headerName: "FD", width: 100,
+    renderCell: (params) =>
+    <p>
+        {params.row.LINE_FD} ({params.row.AMERICAN_FD})
+    </p>
+    },
+   { field: "LINE_MGM", headerName: "MGM", width: 100,
+    renderCell: (params) =>
+    <p>
+        {params.row.LINE_MGM} ({params.row.AMERICAN_MGM})
+    </p>
+    },
+    { field: "LINE_CZR", headerName: "CZR", width: 100,
+    renderCell: (params) =>
+    <p>
+        {params.row.LINE_CZR} ({params.row.AMERICAN_CZR})
+    </p>
+    },
+  { field: "LINE_RIV", headerName: "RIV", width: 100,
+  renderCell: (params) =>
+  <p>
+      {params.row.LINE_RIV} ({params.row.AMERICAN_RIV})
+  </p>
+  }
+
+];
+
+const Home: NextPage = () => {
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState([]);
+  const [data2, setData2] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch("/api/nba/market").then((o) => o.json());
+        const last_modified = await fetch("/api/nba/last_mod").then((o) => o.json());
+        setData(res.data);
+        setData2(last_modified.data[0].date);
+      } catch (e) {
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  return (
+    <div className={styles.container}>
+      <main className={styles.main}>
+        <h1 className={styles.title}>All NBA Props</h1>
+        <div>Projections Update: {data2}</div>
+        {loading && "Loading"}
+        {!loading && data && (
+          <div className={styles.tableContainer}>
+          <Box
+            sx={{
+              height: '100%',
+              width: '100%',
+              '& .super-app.negative': {
+                backgroundColor: '#FF0000',
+              },
+              '& .super-app.positive': {
+                backgroundColor: '#228C22',
+              },
+            }}
+          >
+            <DataGrid
+              rows={data}
+              getRowId={(row) => row.index}
+              columns={TABLE_COLUMNS}
+            />
+          </Box>
+
+          </div>
+        )}
+      </main>
+
+      <footer className={styles.footer}>
+        <a href="https://prophub.ca" target="_blank" rel="noopener noreferrer">
+          Powered by{" "}
+          <span className={styles.logo}>
+            <Image src="/prophub.jpg" alt="Rfr3sh" width={72} height={16} />
+          </span>
+        </a>
+      </footer>
+    </div>
+  );
+};
+
+
+
+export default Home;
